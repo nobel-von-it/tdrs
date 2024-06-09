@@ -4,9 +4,11 @@ A simple command line task manager written in Rust.
 
 ## Installation
 
+# Git Clone
+
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/tdr.git
+   git clone https://github.com/nobel-von-it/tdr.git
    ```
 2. Change into the directory:
    ```
@@ -15,6 +17,13 @@ A simple command line task manager written in Rust.
 3. Build and run the application:
    ```
    cargo run
+   ```
+
+# Cargo install
+
+1. Install the `tdr` package:
+   ```
+   cargo install tdr
    ```
 
 ## Usage

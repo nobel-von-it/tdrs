@@ -4,7 +4,7 @@ A simple command line task manager written in Rust.
 
 ## Installation
 
-# Git Clone
+### Git Clone
 
 1. Clone the repository:
    ```
@@ -19,7 +19,7 @@ A simple command line task manager written in Rust.
    cargo run
    ```
 
-# Cargo install
+### Cargo install
 
 1. Install the `tdr` package:
    ```

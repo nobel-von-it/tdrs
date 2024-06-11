@@ -38,6 +38,16 @@ A simple command line task manager written in Rust.
 - `list`: Display all tasks.
 - `clear`: Clear all tasks.
 
+### Subcommands
+
+- `subtask <id> add <text>`: Add a new subtask to the task with the given ID.
+- `subtask <id> complete <id>`: Mark the subtask with the given ID as completed.
+- `subtask <id> uncomplete <id>`: Mark the subtask with the given ID as uncompleted.
+- `subtask <id> remove <id>`: Remove the subtask with the given ID.
+- `subtask <id> get <id>`: Display the subtask with the given ID.
+- `subtask <id> list`: Display all subtasks of the task with the given ID.
+- `subtask <id> clear`: Clear all subtasks of the task with the given ID.
+
 ### Examples
 
 - Add a new task:
@@ -51,6 +61,26 @@ A simple command line task manager written in Rust.
 - List all tasks:
   ```
   tdr list
+  ```
+- Remove a task:
+  ```
+  tdr remove 1
+  ```
+- Display a task:
+  ```
+  tdr get 1
+  ```
+- Add a subtask to a task:
+  ```
+  tdr subtask 1 add "Make tea"
+  ```
+- Complete a subtask:
+  ```
+  tdr subtask 1 complete 1
+  ```
+- List all subtasks of a task:
+  ```
+  tdr subtask 1 list
   ```
 
 ## Features

@@ -8,12 +8,12 @@ use std::fmt;
 struct Args {
     /// The command to execute.
     #[command(subcommand)]
-    command: Option<Commands>,
+    command: Option<TaskCommands>,
 }
 
 /// Available commands for the task manager.
 #[derive(Subcommand)]
-enum Commands {
+enum TaskCommands {
     /// Add a new task.
     Add {
         /// The text of the task.
@@ -43,13 +43,53 @@ enum Commands {
     List,
     /// Clear all tasks.
     Clear,
+    /// Add a subtask to a task.
+    Subtask {
+        /// The ID of the task to add the subtask to.
+        id: usize,
+        #[command(subcommand)]
+        command: Option<SubtaskCommands>,
+    },
+}
+
+#[derive(Subcommand)]
+enum SubtaskCommands {
+    /// Add a new subtask.
+    Add {
+        /// The text of the subtask.
+        text: String,
+    },
+    /// Complete a subtask.
+    Complete {
+        /// The ID of the subtask to complete.
+        id: usize,
+    },
+    /// Uncomplete a subtask.
+    Uncomplete {
+        /// The ID of the subtask to uncomplete.
+        id: usize,
+    },
+    /// Get a subtask.
+    Get {
+        /// The ID of the subtask to get.
+        id: usize,
+    },
+    /// Remove a subtask.
+    Remove {
+        /// The ID of the subtask to remove.
+        id: usize,
+    },
+    /// List all subtasks.
+    List,
+    /// Clear all subtasks.
+    Clear,
 }
 
 /// A list of tasks.
 #[derive(Serialize, Deserialize)]
 struct TaskList {
     /// The tasks in the list.
-    tasks: Vec<Task>,
+    tasks: Vec<TaskJson>,
 }
 
 impl TaskList {
@@ -96,16 +136,18 @@ fn get_default_path() -> String {
 
 /// A task.
 #[derive(Serialize, Deserialize)]
-struct Task {
+struct TaskJson {
     /// The ID of the task.
     id: usize,
     /// The text of the task.
     text: String,
     /// Whether the task is completed.
     completed: bool,
+    /// The subtasks of the task.
+    subtasks: Vec<TaskJson>,
 }
 
-impl fmt::Display for Task {
+impl fmt::Display for TaskJson {
     /// Format the task for display.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.completed {
@@ -116,13 +158,14 @@ impl fmt::Display for Task {
     }
 }
 
-impl Task {
+impl TaskJson {
     /// Create a new task.
-    fn new(id: usize, text: String) -> Task {
-        Task {
+    fn new(id: usize, text: String) -> Self {
+        Self {
             id,
             text,
             completed: false,
+            subtasks: vec![],
         }
     }
 
@@ -141,51 +184,96 @@ fn main() {
     let args = Args::parse();
     let mut tasks = TaskList::new();
     match args.command {
-        Some(Commands::Add { text }) => {
+        Some(TaskCommands::Add { text }) => {
             tasks
                 .tasks
-                .push(Task::new(tasks.tasks.len() + 1, text.clone()));
-            tasks.save();
+                .push(TaskJson::new(tasks.tasks.len() + 1, text.clone()));
             println!("Added task {} with text {}", tasks.tasks.len(), text);
         }
-        Some(Commands::Complete { id }) => {
+        Some(TaskCommands::Complete { id }) => {
             if let Some(task) = tasks.tasks.get_mut(id - 1) {
                 task.complete();
-                tasks.save();
                 println!("Completed task {}", id);
             }
         }
-        Some(Commands::Uncomplete { id }) => {
+        Some(TaskCommands::Uncomplete { id }) => {
             if let Some(task) = tasks.tasks.get_mut(id - 1) {
                 task.uncomplete();
-                tasks.save();
                 println!("Uncompleted task {}", id);
             }
         }
-        Some(Commands::Remove { id }) => {
+        Some(TaskCommands::Remove { id }) => {
             if tasks.tasks.get(id - 1).is_some() {
                 tasks.tasks.remove(id - 1);
-                tasks.save();
                 println!("Removed task {}", id);
             }
         }
-        Some(Commands::Get { id }) => {
+        Some(TaskCommands::Get { id }) => {
             if let Some(task) = tasks.tasks.get(id - 1) {
                 println!("{}", task);
             }
         }
-        Some(Commands::List) => {
+        Some(TaskCommands::List) => {
             for (i, task) in tasks.tasks.iter().enumerate() {
                 println!("{}: {}", i + 1, task);
+                for (i, subtask) in task.subtasks.iter().enumerate() {
+                    println!("  {}: {}", i + 1, subtask);
+                }
             }
         }
-        Some(Commands::Clear) => {
+        Some(TaskCommands::Clear) => {
             tasks.tasks.clear();
-            tasks.save();
             println!("Cleared all tasks");
+        }
+        Some(TaskCommands::Subtask { id, command }) => {
+            if let Some(task) = tasks.tasks.get_mut(id - 1) {
+                match command {
+                    Some(SubtaskCommands::Add { text }) => {
+                        task.subtasks
+                            .push(TaskJson::new(task.subtasks.len() + 1, text.clone()));
+                        println!("Added subtask {} with text {}", task.subtasks.len(), text);
+                    }
+                    Some(SubtaskCommands::Complete { id }) => {
+                        if let Some(subtask) = task.subtasks.get_mut(id - 1) {
+                            subtask.complete();
+                            println!("Completed subtask {}", id);
+                        }
+                    }
+                    Some(SubtaskCommands::Uncomplete { id }) => {
+                        if let Some(subtask) = task.subtasks.get_mut(id - 1) {
+                            subtask.uncomplete();
+                            println!("Uncompleted subtask {}", id);
+                        }
+                    }
+                    Some(SubtaskCommands::Remove { id }) => {
+                        if task.subtasks.get(id - 1).is_some() {
+                            task.subtasks.remove(id - 1);
+                            println!("Removed subtask {}", id);
+                        }
+                    }
+                    Some(SubtaskCommands::Get { id }) => {
+                        if let Some(subtask) = task.subtasks.get(id - 1) {
+                            println!("{}", subtask);
+                        }
+                    }
+                    Some(SubtaskCommands::List) => {
+                        task.subtasks.iter().enumerate().for_each(|(i, s)| {
+                            println!("{}: {}", i + 1, s);
+                        })
+                    }
+                    Some(SubtaskCommands::Clear) => {
+                        task.subtasks.clear();
+                        println!("Cleared all subtasks");
+                    }
+                    None => {
+                        println!("No subtask command specified");
+                    }
+                }
+            }
         }
         None => {
             println!("No command specified");
         }
     }
+    tasks.save();
 }

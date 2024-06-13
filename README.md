@@ -31,6 +31,7 @@ A simple command line task manager written in Rust.
 ### Commands
 
 - `add <text>`: Add a new task with the given text.
+- `edit <id> <text>`: Edit the task with the given ID.
 - `complete <id>`: Mark the task with the given ID as completed.
 - `uncomplete <id>`: Mark the task with the given ID as uncompleted.
 - `remove <id>`: Remove the task with the given ID.
@@ -41,6 +42,7 @@ A simple command line task manager written in Rust.
 ### Subcommands
 
 - `subtask <id> add <text>`: Add a new subtask to the task with the given ID.
+- `subtask <id> edit <id> <text>`: Edit the subtask with the given ID.
 - `subtask <id> complete <id>`: Mark the subtask with the given ID as completed.
 - `subtask <id> uncomplete <id>`: Mark the subtask with the given ID as uncompleted.
 - `subtask <id> remove <id>`: Remove the subtask with the given ID.

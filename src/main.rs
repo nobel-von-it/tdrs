@@ -19,6 +19,11 @@ enum TaskCommands {
         /// The text of the task.
         text: String,
     },
+    Edit {
+        /// The ID of the task to edit.
+        id: usize,
+        text: String,
+    },
     /// Complete a task.
     Complete {
         /// The ID of the task to complete.
@@ -57,6 +62,12 @@ enum SubtaskCommands {
     /// Add a new subtask.
     Add {
         /// The text of the subtask.
+        text: String,
+    },
+    /// Edit a subtask.
+    Edit {
+        /// The ID of the subtask to edit.
+        id: usize,
         text: String,
     },
     /// Complete a subtask.
@@ -190,6 +201,12 @@ fn main() {
                 .push(TaskJson::new(tasks.tasks.len() + 1, text.clone()));
             println!("Added task {} with text {}", tasks.tasks.len(), text);
         }
+        Some(TaskCommands::Edit { id, text }) => {
+            if let Some(task) = tasks.tasks.get_mut(id - 1) {
+                task.text = text;
+                println!("Edited task {}", id);
+            }
+        }
         Some(TaskCommands::Complete { id }) => {
             if let Some(task) = tasks.tasks.get_mut(id - 1) {
                 task.complete();
@@ -232,6 +249,12 @@ fn main() {
                         task.subtasks
                             .push(TaskJson::new(task.subtasks.len() + 1, text.clone()));
                         println!("Added subtask {} with text {}", task.subtasks.len(), text);
+                    }
+                    Some(SubtaskCommands::Edit { id, text }) => {
+                        if let Some(subtask) = task.subtasks.get_mut(id - 1) {
+                            subtask.text = text;
+                            println!("Edited subtask {}", id);
+                        }
                     }
                     Some(SubtaskCommands::Complete { id }) => {
                         if let Some(subtask) = task.subtasks.get_mut(id - 1) {

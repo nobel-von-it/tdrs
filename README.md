@@ -23,7 +23,7 @@ A simple command line task manager written in Rust.
 
 1. Install the `tdr` package:
    ```
-   cargo install tdr
+   cargo install tdrs
    ```
 
 ## Usage

@@ -2,7 +2,7 @@
 name = "tdr"
 authors = ["nerd"]
 license = "MIT"
-discription = "A simple command line task manager"
+description = "A simple command line task manager"
 homepage = "https://github.com/nobel-von-it/tdr.git"
 repository = "https://github.com/nobel-von-it/tdr.git"
 readme = "README.md"

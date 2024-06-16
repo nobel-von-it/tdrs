@@ -1,5 +1,5 @@
 [package]
-name = "tdr"
+name = "tdrs"
 authors = ["nerd"]
 license = "MIT"
 description = "A simple command line task manager"

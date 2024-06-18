@@ -7,7 +7,7 @@ homepage = "https://github.com/nobel-von-it/tdr.git"
 repository = "https://github.com/nobel-von-it/tdr.git"
 readme = "README.md"
 categories = ["command-line-utilities"]
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 
 [dependencies]

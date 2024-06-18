@@ -183,11 +183,23 @@ impl TaskJson {
     /// Complete the task.
     fn complete(&mut self) {
         self.completed = true;
+        if self.subtasks.is_empty() {
+            return;
+        }
+        for subtask in self.subtasks.iter_mut() {
+            subtask.complete();
+        }
     }
 
     /// Uncomplete the task.
     fn uncomplete(&mut self) {
         self.completed = false;
+        if self.subtasks.is_empty() {
+            return;
+        }
+        for subtask in self.subtasks.iter_mut() {
+            subtask.uncomplete();
+        }
     }
 }
 

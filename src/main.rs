@@ -1,6 +1,10 @@
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
-use std::fmt;
+use std::{
+    fmt,
+    fs::{self, File, OpenOptions},
+    process,
+};
 
 /// Command line arguments for the task manager.
 #[derive(Parser)]
@@ -48,6 +52,8 @@ enum TaskCommands {
     List,
     /// Clear all tasks.
     Clear,
+    /// Start terminal interface
+    TUI,
     /// Add a subtask to a task.
     Subtask {
         /// The ID of the task to add the subtask to.
@@ -106,33 +112,51 @@ struct TaskList {
 impl TaskList {
     /// Create a new task list from the default file.
     fn new() -> TaskList {
-        TaskList::load()
+        match TaskList::load() {
+            Ok(tl) => tl,
+            Err(e) => {
+                eprintln!("initialize task list error: {e}");
+                process::exit(1);
+            }
+        }
+    }
+
+    fn check() -> anyhow::Result<File> {
+        let path = get_default_path();
+        let file_path = format!("{}/tasks.json", &path);
+        let _ = fs::create_dir_all(&path);
+        let file = match std::fs::File::options()
+            .read(true)
+            .write(true)
+            .open(&file_path)
+        {
+            Ok(file) => file,
+            Err(_) => {
+                let _ = std::fs::File::create(&file_path)?;
+                std::fs::File::options()
+                    .read(true)
+                    .write(true)
+                    .open(&file_path)?
+            }
+        };
+        Ok(file)
     }
 
     /// Load the task list from the default file.
-    fn load() -> TaskList {
-        let default_path = get_default_path();
-        let file_path = format!("{}/tasks.json", default_path);
-        let _ = std::fs::create_dir_all(default_path.clone());
-        let file = match std::fs::File::open(&file_path) {
-            Ok(file) => file,
-            Err(_) => {
-                let _ = std::fs::File::create(&file_path).unwrap();
-                std::fs::File::open(&file_path).unwrap()
-            }
-        };
+    fn load() -> anyhow::Result<TaskList> {
+        let file = TaskList::check()?;
         let tasks: TaskList = serde_json::from_reader(file).unwrap_or(TaskList { tasks: vec![] });
-        tasks
+        Ok(tasks)
     }
 
     /// Save the task list to the default file.
-    fn save(&self) {
-        let default_path = get_default_path();
-        let _ = std::fs::create_dir_all(default_path.clone());
-        let mut file = std::fs::File::create(format!("{}/tasks.json", default_path)).unwrap();
-        serde_json::to_writer(&mut file, &self)
-            .map_err(|e| eprint!("{}", e))
-            .unwrap();
+    fn save(&self) -> anyhow::Result<()> {
+        let file = TaskList::check()?;
+        file.set_len(0)?;
+        if let Err(e) = serde_json::to_writer(file, &self) {
+            return Err(anyhow::anyhow!("serde error: {e}"));
+        }
+        Ok(())
     }
 }
 
@@ -140,7 +164,6 @@ impl TaskList {
 fn get_default_path() -> String {
     match std::env::consts::OS {
         "windows" => format!("{}\\AppData\\Local\\tdr\\", whoami::username()),
-        "linux" => format!("/home/{}/.tdr/", whoami::username()),
         _ => format!("/home/{}/.tdr/", whoami::username()),
     }
 }
@@ -203,7 +226,8 @@ impl TaskJson {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Args::parse();
     let mut tasks = TaskList::new();
     match args.command {
@@ -253,6 +277,9 @@ fn main() {
         Some(TaskCommands::Clear) => {
             tasks.tasks.clear();
             println!("Cleared all tasks");
+        }
+        Some(TaskCommands::TUI) => {
+            run().await;
         }
         Some(TaskCommands::Subtask { id, command }) => {
             if let Some(task) = tasks.tasks.get_mut(id - 1) {
